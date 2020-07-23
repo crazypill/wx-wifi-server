@@ -136,9 +136,13 @@ int main( void )
                     if( new < 0 )
                     {
                         perror( "accept" );
-//                      exit (EXIT_FAILURE);
                     }
-                    fprintf( stderr, "Server: connect from host %s, port %hd.\n", inet_ntoa( clientname.sin_addr ), ntohs( clientname.sin_port ) );
+                    else
+                    {
+#ifdef DEBUG
+                        fprintf( stderr, "Server: connect from host %s, port %hd.\n", inet_ntoa( clientname.sin_addr ), ntohs( clientname.sin_port ) );
+#endif
+                    }
                     FD_SET( new, &active_fd_set );
                 }
                 else
