@@ -21,8 +21,8 @@
 #define PORT             5555
 #define MAXMSG           512
 #define kLogRollInterval 60 * 60 * 24   // (roll the log daily)
-//#define kLogFilePath     "/Library/Server/Logs/wx-wifi-server/wx.csv"
-#define kLogFilePath     "/Users/alex/Desktop/wx.csv"
+#define kLogFilePath     "/Library/Server/Logs/wx-wifi-server/wx.csv"
+//#define kLogFilePath     "/Users/alex/Desktop/wx.csv"
 
 static FILE*  s_logFile = NULL;
 static time_t s_last_log_roll = 0;
