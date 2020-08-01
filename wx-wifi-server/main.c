@@ -18,10 +18,22 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-#define PORT    5555
-#define MAXMSG  512
+#define PORT             5555
+#define MAXMSG           512
+#define kLogRollInterval 60 * 60 * 24   // (roll the log daily)
+//#define kLogFilePath     "/Library/Server/Logs/wx-wifi-server/wx.csv"
+#define kLogFilePath     "/Users/alex/Desktop/wx.csv"
 
-static FILE* s_logFile = NULL;
+static FILE*  s_logFile = NULL;
+static time_t s_last_log_roll = 0;
+static time_t timeGetTimeSec( void );
+
+
+time_t timeGetTimeSec( void )
+{
+    time_t rawtime = 0;
+    return time( &rawtime );
+}
 
 
 int make_socket (uint16_t port)
@@ -70,7 +82,7 @@ int read_from_client( int filedes )
 
     // lazy open our log file...
     if( !s_logFile )
-        s_logFile = fopen( "wx.log.csv", "a" );
+        s_logFile = fopen( kLogFilePath, "a" );
 
 #ifdef DEBUG
     fprintf( stderr, "Server: got message: `%s'\n", buffer );
@@ -83,7 +95,28 @@ int read_from_client( int filedes )
         fprintf( s_logFile, "%d-%02d-%02d %02d:%02d:%02d, %s\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, buffer );
         fflush( s_logFile ); // in case someone is watching it...
     }
-
+    
+    if( s_logFile && (timeGetTimeSec() > (s_last_log_roll + kLogRollInterval)) )
+    {
+        fclose( s_logFile );
+        
+        char* buffer = malloc( strlen( kLogFilePath ) + 8 );   // 6 date/time characters, a '.', and null byte
+        if( buffer )
+        {
+            time_t t = time( NULL );
+            struct tm tm = *localtime( &t );
+            sprintf( buffer, "%s.%d%02d%02d", kLogFilePath, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday );
+            
+            // rename it
+            if( rename( kLogFilePath, buffer ) != 0 )
+                perror( "rename" );
+            
+            // now reopen new file
+            s_logFile = fopen( kLogFilePath, "a" );
+            free( buffer );
+        }
+        s_last_log_roll = timeGetTimeSec();
+    }
     return 0;
 }
 
@@ -98,6 +131,8 @@ int main( void )
     socklen_t size = 0;
     struct sockaddr_in clientname = {};
 
+    s_last_log_roll = timeGetTimeSec();
+    
     // Create the socket and set it up to accept connections.
     sock = make_socket( PORT );
     if( listen( sock, 1 ) < 0 )
