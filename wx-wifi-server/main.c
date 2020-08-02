@@ -100,7 +100,7 @@ int read_from_client( int filedes )
     {
         fclose( s_logFile );
         
-        char* buffer = malloc( strlen( kLogFilePath ) + 8 );   // 6 date/time characters, a '.', and null byte
+        char* buffer = malloc( strlen( kLogFilePath ) + 10 );   // 8 date/time characters, a '.', and null byte
         if( buffer )
         {
             time_t t = time( NULL );
