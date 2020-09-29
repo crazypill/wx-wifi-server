@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <sys/time.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <time.h>
@@ -64,8 +65,8 @@ int make_socket (uint16_t port)
 
 int read_from_client( int filedes )
 {
-  char buffer[MAXMSG];
-  ssize_t nbytes = 0;
+    char buffer[MAXMSG];
+    ssize_t nbytes = 0;
 
     memset( buffer, 0, sizeof( buffer ) );
     nbytes = read( filedes, buffer, MAXMSG );
@@ -82,10 +83,14 @@ int read_from_client( int filedes )
 
     // lazy open our log file...
     if( !s_logFile )
+    {
         s_logFile = fopen( kLogFilePath, "a" );
+        if( !s_logFile )
+            fprintf( stderr, "Server: failed to open log file: %s\n", kLogFilePath );
+    }
 
 #ifdef DEBUG
-    fprintf( stderr, "Server: got message: `%s'\n", buffer );
+    fprintf( stderr, "Server: got message: `%s`\n", buffer );
 #endif
     
     if( s_logFile )
